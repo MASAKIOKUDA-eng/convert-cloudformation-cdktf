@@ -63,7 +63,7 @@ export class CdktfGenerator {
   private static generateTypeScriptMainFile(config: TerraformConfig): string {
     const imports = [
       'import { Construct } from "constructs";',
-      'import { App, TerraformStack } from "cdktf";',
+      'import { App, TerraformStack, TerraformOutput } from "cdktf";',
       'import * as aws from "@cdktf/provider-aws";',
     ];
 
@@ -84,8 +84,17 @@ export class CdktfGenerator {
     const resources = config.resources.map(resource => this.generateTypeScriptResource(resource));
 
     const outputs = Object.entries(config.outputs).map(([name, output]) => {
+      const value = (output as any).value;
+      let outputValue = value;
+      
+      if (typeof value === 'string' && (value.includes('props.') || value.includes('.'))) {
+        outputValue = value;
+      } else {
+        outputValue = JSON.stringify(value);
+      }
+      
       return `    new TerraformOutput(this, "${name}", {
-      value: ${(output as any).value},
+      value: ${outputValue},
       description: ${JSON.stringify((output as any).description)},
     });`;
     });
@@ -135,10 +144,16 @@ app.synth();
    */
   private static generateTypeScriptResource(resource: TerraformResource): string {
     const properties = Object.entries(resource.properties)
-      .map(([key, value]) => `      ${key}: ${JSON.stringify(value)},`)
+      .map(([key, value]) => {
+        if (typeof value === 'string' && (value.includes('props.') || value.includes('.'))) {
+          return `      ${key}: ${value},`;
+        } else {
+          return `      ${key}: ${JSON.stringify(value)},`;
+        }
+      })
       .join('\n');
 
-    return `    new aws.${this.pascalCase(resource.type)}(this, "${resource.name}", {
+    return `    const ${resource.name} = new aws.${this.pascalCase(resource.type)}(this, "${resource.name}", {
 ${properties}
     });`;
   }

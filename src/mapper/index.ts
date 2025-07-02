@@ -124,10 +124,11 @@ export class ResourceMapper {
       } else {
         // Handle intrinsic functions like Ref, GetAtt, etc.
         if ('Ref' in value) {
-          return `\${var.${value.Ref}}`;
+          return `props.${value.Ref}`;
         } else if ('Fn::GetAtt' in value) {
           const [resourceName, attribute] = value['Fn::GetAtt'];
-          return `\${${this.resourceTypeMapping[resourceName]}.${this.sanitizeResourceName(resourceName)}.${this.camelToSnakeCase(attribute)}}`;
+          const resourceId = this.sanitizeResourceName(resourceName);
+          return `${resourceId}.${this.camelToSnakeCase(attribute)}`;
         } else {
           const result: Record<string, any> = {};
           Object.entries(value).forEach(([k, v]) => {
@@ -148,10 +149,18 @@ export class ResourceMapper {
     // Simplified implementation
     if (typeof expression === 'object' && expression !== null) {
       if ('Ref' in expression) {
-        return `\${var.${expression.Ref}}`;
+        if (expression.Ref.startsWith('AWS::') || expression.Ref === 'AWS::Region' || expression.Ref === 'AWS::AccountId') {
+          // AWS特殊変数の場合
+          return `"${expression.Ref}"`;
+        } else {
+          // リソース参照の場合
+          const resourceId = this.sanitizeResourceName(expression.Ref);
+          return resourceId;
+        }
       } else if ('Fn::GetAtt' in expression) {
         const [resourceName, attribute] = expression['Fn::GetAtt'];
-        return `\${${this.resourceTypeMapping[resourceName]}.${this.sanitizeResourceName(resourceName)}.${this.camelToSnakeCase(attribute)}}`;
+        const resourceId = this.sanitizeResourceName(resourceName);
+        return `${resourceId}.${this.camelToSnakeCase(attribute)}`;
       }
     }
     return String(expression);

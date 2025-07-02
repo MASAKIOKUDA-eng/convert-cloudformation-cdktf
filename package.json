@@ -5,10 +5,9 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc && jsii",
-    "build:watch": "jsii --watch",
-    "test": "jest",
-    "package": "jsii-pacmak"
+    "build": "tsc",
+    "start": "node lib/cli/index.js",
+    "test": "jest"
   },
   "keywords": [
     "cloudformation",

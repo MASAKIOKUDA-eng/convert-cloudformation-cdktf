@@ -26,7 +26,8 @@ async function main() {
       default: 'typescript',
     })
     .help()
-    .alias('help', 'h').argv;
+    .alias('help', 'h')
+    .parseSync();
 
   try {
     console.log(`Parsing CloudFormation template: ${argv.input}`);

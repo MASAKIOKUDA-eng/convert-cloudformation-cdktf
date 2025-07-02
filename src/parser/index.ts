@@ -15,6 +15,35 @@ export interface CloudFormationResource {
   DependsOn?: string | string[];
 }
 
+// CloudFormation YAML タグのカスタムスキーマ
+const cfnSchema = yaml.DEFAULT_SCHEMA.extend([
+  new yaml.Type('!Ref', {
+    kind: 'scalar',
+    construct: function(data) {
+      return { Ref: data };
+    }
+  }),
+  new yaml.Type('!GetAtt', {
+    kind: 'scalar',
+    construct: function(data) {
+      const parts = data.split('.');
+      return { 'Fn::GetAtt': [parts[0], parts.slice(1).join('.')] };
+    }
+  }),
+  new yaml.Type('!Sub', {
+    kind: 'scalar',
+    construct: function(data) {
+      return { 'Fn::Sub': data };
+    }
+  }),
+  new yaml.Type('!Join', {
+    kind: 'sequence',
+    construct: function(data) {
+      return { 'Fn::Join': data };
+    }
+  })
+]);
+
 /**
  * CloudFormation template parser
  */
@@ -29,7 +58,7 @@ export class CloudFormationParser {
     if (filePath.endsWith('.json')) {
       return JSON.parse(content) as CloudFormationTemplate;
     } else if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
-      return yaml.load(content) as CloudFormationTemplate;
+      return yaml.load(content, { schema: cfnSchema }) as CloudFormationTemplate;
     } else {
       throw new Error(`Unsupported file format: ${filePath}`);
     }
