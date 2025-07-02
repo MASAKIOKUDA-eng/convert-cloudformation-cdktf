@@ -24,7 +24,7 @@ This project provides a conversion tool that takes AWS CloudFormation templates 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/convert-cloudformation-cdktf.git
+git clone https://github.com/MASAKIOKUDA-eng/convert-cloudformation-cdktf.git
 cd convert-cloudformation-cdktf
 
 # Install dependencies
