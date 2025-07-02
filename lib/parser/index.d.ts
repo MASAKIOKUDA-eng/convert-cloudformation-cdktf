@@ -19,4 +19,9 @@ export declare class CloudFormationParser {
      * @param filePath Path to the CloudFormation template file
      */
     static parseFile(filePath: string): CloudFormationTemplate;
+    /**
+     * CloudFormationの特殊タグを処理するための前処理
+     * @param content YAMLコンテンツ
+     */
+    private static preprocessCloudFormationTags;
 }
